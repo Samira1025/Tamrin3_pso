@@ -37,18 +37,23 @@ pbest_val = np.array([ackley(p) for p in pbest])
 gbest = pbest[np.argmin(pbest_val)]
 gbest_val = np.min(pbest_val)
 
-# NEW FUNCTION: Calculate local best using ring topology neighborhood
-def get_lbest(particle_idx, pbest, pbest_val):
-    # Create list of neighbor indices in ring structure
-    neighbors = []
-    for i in range(-k, k + 1):
-        # Use modulo to wrap around the array (creating ring structure)
-        neighbor_idx = (particle_idx + i) % num_particles
-        neighbors.append(neighbor_idx)
-    
-    # Find the neighbor with best fitness value
-    neighbor_best_idx = neighbors[np.argmin(pbest_val[neighbors])]
-    return pbest[neighbor_best_idx]
+def get_lbest(particle_idx, pbest, pbest_val, k=5):
+    # موقعیت ذره جاری
+    current_pos = pbest[particle_idx].reshape(1, -1)
+
+    # محاسبه فاصله‌ی همه ذرات با ذره جاری
+    distances = cdist(current_pos, pbest)[0]
+
+    # حذف خود ذره از لیست همسایگان
+    distances[particle_idx] = np.inf
+
+    # گرفتن ایندکس‌های k ذره نزدیک‌تر
+    neighbor_indices = np.argsort(distances)[:k]
+
+    # پیدا کردن بهترین همسایه (از لحاظ مقدار تابع هدف)
+    best_neighbor_idx = neighbor_indices[np.argmin(pbest_val[neighbor_indices])]
+
+    return pbest[best_neighbor_idx]
 
 # Store positions for animation
 positions_over_time = []
